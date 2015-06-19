@@ -2,25 +2,11 @@
 <items version="2" >
 
     <item
-        jar="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/jars/classes.jar"
+        jar="/home/joshua/pebble-accel-log/android/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.0/jars/classes.jar"
         jumboMode="false"
         revision="22.0.1"
-        sha1="1ee588ff2c4daf7b97c1cbf922a6c7f027285c2f">
-        <dex dex="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/pre-dexed/debug/classes-e5a4e1ae2078ecec63227691ace4c17ee876606b.jar" />
-    </item>
-    <item
-        jar="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/exploded-aar/com.getpebble/pebblekit/3.0.0/jars/classes.jar"
-        jumboMode="false"
-        revision="22.0.1"
-        sha1="bd72bf60a6e56573eecb0e6abf419fac2b1fc1e6">
-        <dex dex="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/pre-dexed/debug/classes-1c98f0eefa3861a158a7b26225fcc749fd9f6e1c.jar" />
-    </item>
-    <item
-        jar="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/jars/libs/internal_impl-22.2.0.jar"
-        jumboMode="false"
-        revision="22.0.1"
-        sha1="57f2ab85c164ff1676ec64dee787981c046fab79">
-        <dex dex="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/pre-dexed/debug/internal_impl-22.2.0-ea283cd4d0ba739544a95dd63b1612cd9a9ed912.jar" />
+        sha1="73753982da6bde518f3a4c6b372749981d14d1a0">
+        <dex dex="/home/joshua/pebble-accel-log/android/app/build/intermediates/pre-dexed/debug/classes-661ce287c173c1715e61a26560d80a57ad64208e.jar" />
     </item>
     <item
         jar="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.0/jars/classes.jar"
@@ -30,11 +16,53 @@
         <dex dex="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/pre-dexed/debug/classes-52e2d2675f73b13403d3bd7c6b591bcf20cb349d.jar" />
     </item>
     <item
+        jar="/home/joshua/pebble-accel-log/android/app/build/intermediates/exploded-aar/com.getpebble/pebblekit/3.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="bd72bf60a6e56573eecb0e6abf419fac2b1fc1e6">
+        <dex dex="/home/joshua/pebble-accel-log/android/app/build/intermediates/pre-dexed/debug/classes-a06a12ce876a14b709d4db144e31d9ebecafe53b.jar" />
+    </item>
+    <item
+        jar="/home/joshua/pebble-accel-log/android/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/jars/libs/internal_impl-22.2.0.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="57f2ab85c164ff1676ec64dee787981c046fab79">
+        <dex dex="/home/joshua/pebble-accel-log/android/app/build/intermediates/pre-dexed/debug/internal_impl-22.2.0-01aadcf07b9d32c9e6d3f32fde12e09fb3ffb552.jar" />
+    </item>
+    <item
+        jar="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/exploded-aar/com.getpebble/pebblekit/3.0.0/jars/classes.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="bd72bf60a6e56573eecb0e6abf419fac2b1fc1e6">
+        <dex dex="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/pre-dexed/debug/classes-1c98f0eefa3861a158a7b26225fcc749fd9f6e1c.jar" />
+    </item>
+    <item
         jar="/home/joshua/Android/Sdk/extras/android/m2repository/com/android/support/support-annotations/22.2.0/support-annotations-22.2.0.jar"
         jumboMode="false"
         revision="22.0.1"
         sha1="66b42a1f3eb7676070b7ef7f14b603483aecbee1">
         <dex dex="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/pre-dexed/debug/support-annotations-22.2.0-26c1629783a013ffc0a3ff27fb5078362d586813.jar" />
+    </item>
+    <item
+        jar="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/jars/libs/internal_impl-22.2.0.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="57f2ab85c164ff1676ec64dee787981c046fab79">
+        <dex dex="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/pre-dexed/debug/internal_impl-22.2.0-ea283cd4d0ba739544a95dd63b1612cd9a9ed912.jar" />
+    </item>
+    <item
+        jar="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/jars/classes.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="1ee588ff2c4daf7b97c1cbf922a6c7f027285c2f">
+        <dex dex="/home/joshua/AndroidStudioProjects/PebbleDataLogging/app/build/intermediates/pre-dexed/debug/classes-e5a4e1ae2078ecec63227691ace4c17ee876606b.jar" />
+    </item>
+    <item
+        jar="/home/joshua/pebble-accel-log/android/app/build/intermediates/exploded-aar/com.android.support/support-v4/22.2.0/jars/classes.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="1ee588ff2c4daf7b97c1cbf922a6c7f027285c2f">
+        <dex dex="/home/joshua/pebble-accel-log/android/app/build/intermediates/pre-dexed/debug/classes-7935e0497a43d81328ac38ec0660d902c0b4ce72.jar" />
     </item>
 
 </items>
