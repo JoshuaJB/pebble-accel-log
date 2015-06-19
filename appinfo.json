@@ -1,0 +1,19 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "jbakita@cs.unc.edu",
+    "longName": "Pebble Accelerometer Logging",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "sdkVersion": "3",
+    "shortName": "Pebble Accelerometer Logging",
+    "uuid": "631b528e-c553-486c-b5ac-da08f63f01de",
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
