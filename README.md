@@ -6,7 +6,7 @@ A example application of Pebble's Data Logging API which sends accelerometer dat
 2. Click the "Import" button on the right
 3. Click "Import From GitHub"
 4. Give the project a name of your choice
-5. Type "github.com/JoshuaJB/pebble-accel-demo" in the textbox for "GitHub Project"
+5. Type "github.com/JoshuaJB/pebble-accel-log" in the textbox for "GitHub Project"
 6. Leave the "Branch" textbox empty
 7. Press "Import"
 8. Once the IDE loads, choose "Compilation" from the left menu
