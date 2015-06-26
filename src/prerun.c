@@ -4,9 +4,13 @@
 static Window *window;
 static TextLayer  *text_layer;
 
+// Function pointers
+void logging_init(void);
+void logging_deinit(void);
+
 // Called whenever a button is pushed to start logging
 void start_logging(ClickRecognizerRef recognizer, void *context){
-	//logging_init();
+	logging_init();
 }
 
 // Setup button handling
@@ -19,7 +23,7 @@ void click_config_provider2(Window *window) {
 void prerun_init(void){
 	window = window_create();
 	text_layer = text_layer_create(layer_get_bounds(window_get_root_layer(window)));
-  text_layer_set_text(text_layer, "Ready to go!\n\nThis sensor will monitor your motion. Press the back button to choose a different part of the body or press any buttong on the right to begin logging.");
+  text_layer_set_text(text_layer, "Ready to go!\n\nThis sensor will monitor your motion. Press the back button to choose a different part of the body or press any button on the right to begin logging.");
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(text_layer));
 	
   window_set_click_config_provider(window, (ClickConfigProvider) click_config_provider2);
@@ -28,7 +32,7 @@ void prerun_init(void){
 }
 
 void prerun_deinit(void){
-	//logging_deinit();
+	logging_deinit();
 	layer_remove_from_parent(text_layer_get_layer(text_layer));
 	text_layer_destroy(text_layer);
 	window_destroy(window);

@@ -32,33 +32,43 @@ void menu_init(void){
 	};	
 	item_array[1] = (SimpleMenuItem) {
 		.title = "Non-Dominant Wrist",
+		.callback = menu_select_callback,
 	};	
 	item_array[2] = (SimpleMenuItem) {
 		.title = "Waist",
+		.callback = menu_select_callback,
 	};	
 	item_array[3] = (SimpleMenuItem) {
 		.title = "Right Ankle",
+		.callback = menu_select_callback,
 	};	
 	item_array[4] = (SimpleMenuItem) {
 		.title = "Left Ankle",
+		.callback = menu_select_callback,
 	};	
 	item_array[5] = (SimpleMenuItem) {
 		.title = "Upper Dominant Arm",
+		.callback = menu_select_callback,
 	};	
 	item_array[6] = (SimpleMenuItem) {
 		.title = "Upper Non-Dominant Arm",
+		.callback = menu_select_callback,
 	};	
 	item_array[7] = (SimpleMenuItem) {
 		.title = "Right Thigh",
+		.callback = menu_select_callback,
 	};	
 	item_array[8] = (SimpleMenuItem) {
 		.title = "Left Thigh",
+		.callback = menu_select_callback,
 	};		
 	item_array[9] = (SimpleMenuItem) {
 		.title = "Chest",
+		.callback = menu_select_callback,
 	};	
 	item_array[10] = (SimpleMenuItem) {
-		.title = "Neck"
+		.title = "Neck",
+		.callback = menu_select_callback,
 	};
 
 	// Adding entries to the section
