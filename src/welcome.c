@@ -39,4 +39,5 @@ void welcome_deinit(void){
 	layer_remove_from_parent(text_layer_get_layer(text_layer));
 	text_layer_destroy(text_layer);
 	window_destroy(window);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Finished welcome");
 }

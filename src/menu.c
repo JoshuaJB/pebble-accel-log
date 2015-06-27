@@ -90,4 +90,5 @@ void menu_deinit(void){
 	layer_remove_from_parent(simple_menu_layer_get_layer(menu_layer));
 	simple_menu_layer_destroy(menu_layer);
 	window_destroy(window);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Finished menu");
 }
