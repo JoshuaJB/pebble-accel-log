@@ -2,7 +2,6 @@
 	
 // Constants
 static const AccelSamplingRate SAMPLE_RATE = ACCEL_SAMPLING_10HZ;
-static const uint8_t DATA_LOG_ID = 164;
 enum states {
   RECORDING,
   PAUSED
@@ -67,7 +66,7 @@ void click_config_provider3(Window *window) {
 }
 
 
-void logging_init(void){
+void logging_init(int index){
   // Create window and a text layer
 	window = window_create();
 	text_layer = text_layer_create(layer_get_bounds(window_get_root_layer(window)));
@@ -77,7 +76,7 @@ void logging_init(void){
 	// Set Accelerometer to sample rate
   accel_service_set_sampling_rate(SAMPLE_RATE);
 	// Start the data logging service, we use only one for the application duration
-  logging_session = data_logging_create(DATA_LOG_ID, DATA_LOGGING_BYTE_ARRAY, 6, false);
+  logging_session = data_logging_create(index, DATA_LOGGING_BYTE_ARRAY, 6, false);
 	// Start logging
   start(NULL, NULL);
   // Display window

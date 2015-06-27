@@ -11,12 +11,12 @@ static SimpleMenuSection section_array[NUMBER_OF_SECTIONS];
 static SimpleMenuItem item_array[NUMBER_OF_ITEMS];
 
 // Function pointers
-void prerun_init(void);
+void prerun_init(int);
 void prerun_deinit(void);
 
 // Loads the next screen whenever a menu item is selected
 static void menu_select_callback(int index, void *context){
-	prerun_init();
+	prerun_init(index);
 }
 
 void menu_init(void){
