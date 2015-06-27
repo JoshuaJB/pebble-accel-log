@@ -1,8 +1,5 @@
 #include <pebble.h>
 
-// Constants
-static const uint8_t DATA_LOG_ID = 164;
-
 // Function Prototypes
 void welcome_init(void);
 void welcome_deinit(void);
@@ -13,6 +10,7 @@ void handle_init(void) {
 }
 
 void handle_deinit(void) {
+	window_stack_pop_all(true);
 	welcome_deinit();
 }
 
