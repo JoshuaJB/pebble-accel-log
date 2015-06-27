@@ -4,7 +4,7 @@
 static const AccelSamplingRate SAMPLE_RATE = ACCEL_SAMPLING_10HZ;
 enum states {
   RECORDING,
-  PAUSED
+  STOPPED
 };
 
 // Global Variables
@@ -14,7 +14,8 @@ DataLoggingSessionRef logging_session;
 static enum states state;
 
 // Function declarations
-static void start_or_pause(ClickRecognizerRef, void *);
+static void switch_state(ClickRecognizerRef, void *);
+void handle_deinit();
 
 // Push data from the accelerometer data service to the data logging service
 static void cache_accel(AccelData * data, uint32_t num_samples) {
@@ -38,33 +39,32 @@ static void start(ClickRecognizerRef recognizer, void *context) {
   // Register acceleration event handler with a 25 sample buffer
   accel_data_service_subscribe(25, cache_accel);
   // Display the pre-run message
-  text_layer_set_text(text_layer, "Logging...\n\n(press any button to pause)");
+  text_layer_set_text(text_layer, "Logging...\n\n(press any button to stop)");
 }
 
 // Analyse and dislay data
-static void pause(ClickRecognizerRef recognizer, void *context) {
-  state = PAUSED;
+static void stop(ClickRecognizerRef recognizer, void *context) {
+  state = STOPPED;
   // De-register acceleration event handler
   accel_data_service_unsubscribe();
   // Display appropriate message
-  text_layer_set_text(text_layer, "Paused.\n\nPress any button to resume.");
+  text_layer_set_text(text_layer, "Stopped.\n\nPress any button to exit.");
 }
 
 // Toggle state
-static void start_or_pause(ClickRecognizerRef recognizer, void * context) {
+static void switch_state(ClickRecognizerRef recognizer, void * context) {
   if (state == RECORDING)
-    pause(NULL, NULL);
-  else if (state == PAUSED)
-    start(NULL, NULL);
+    stop(NULL, NULL);
+  else if (state == STOPPED)
+    handle_deinit();
 }
 
 // Setup button handling
 void click_config_provider3(Window *window) {
-	window_single_click_subscribe(BUTTON_ID_SELECT, start_or_pause);	
-	window_single_click_subscribe(BUTTON_ID_UP, start_or_pause);	
-	window_single_click_subscribe(BUTTON_ID_DOWN, start_or_pause);
+	window_single_click_subscribe(BUTTON_ID_SELECT, switch_state);
+	window_single_click_subscribe(BUTTON_ID_UP, switch_state);	
+	window_single_click_subscribe(BUTTON_ID_DOWN, switch_state);
 }
-
 
 void logging_init(int index){
   // Create window and a text layer
