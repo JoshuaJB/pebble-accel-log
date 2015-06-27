@@ -1,5 +1,5 @@
 # pebble-accel-log
-A example application of Pebble's Data Logging API which sends accelerometer data to an Android app.
+A example application of Pebble's Data Logging API which sends accelerometer data to an Android app. This branch (menu) re-designs the application to work for data logging in a wearable motion research enviroment.
 
 ## Building and Running the Pebble App
 1. Open [CloudPebble](https://cloudpebble.net)
@@ -35,4 +35,4 @@ A example application of Pebble's Data Logging API which sends accelerometer dat
 5. The Pebble's accelerometer readings are displayed on the Android app in a scrollable list.
 
 ## Help!
-Contact jbak ita at cs z unc z edu where the zs are dots and there are no spaces.
+Contact `jbak ita at cs z unc z edu` where the zs are dots and there are no spaces.
