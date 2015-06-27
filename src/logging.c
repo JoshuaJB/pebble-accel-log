@@ -86,6 +86,8 @@ void logging_init(int index){
 void logging_deinit(void){
   // When we don't need to log anything else, we can close off the session.
   data_logging_finish(logging_session);
+  // De-register acceleration event handler (needed when using back to exit screen)
+  accel_data_service_unsubscribe();
 	
 	layer_remove_from_parent(text_layer_get_layer(text_layer));
 	text_layer_destroy(text_layer);
