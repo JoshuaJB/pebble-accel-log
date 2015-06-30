@@ -1,5 +1,6 @@
 #include <pebble.h>
-#include <menu.h>
+#include "welcome.h"
+#include "menu.h"
 
 // Global Variables
 static Window *window;
@@ -18,7 +19,7 @@ void click_config_provider(Window *window) {
 }
 
 // Setting up window and placing it on stack
-void welcome_init(void){
+void welcome_init(){
   window = window_create();
   text_layer = text_layer_create(layer_get_bounds(window_get_root_layer(window)));
   text_layer_set_text(text_layer, "Welcome!\n\nTo get started, press any button. The next screen will let you select what this Pebble is monitoring.");
@@ -30,7 +31,7 @@ void welcome_init(void){
 }
 
 // Get rid of everything once we are finished
-void welcome_deinit(void){
+void welcome_deinit(){
   menu_deinit();
   layer_remove_from_parent(text_layer_get_layer(text_layer));
   text_layer_destroy(text_layer);

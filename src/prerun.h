@@ -1,4 +1,7 @@
-#include <prerun.c>
+#ifndef PRERUN_INCLUDE
+#define PRERUN_INCLUDE
 
-void prerun_init();
-void prerun_deinit();
+extern void prerun_init();
+extern void prerun_deinit();
+
+#endif

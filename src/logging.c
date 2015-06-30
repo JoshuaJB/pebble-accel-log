@@ -1,33 +1,52 @@
 #include <pebble.h>
-
-// Constants
-static const AccelSamplingRate SAMPLE_RATE = ACCEL_SAMPLING_10HZ;
-enum states {
-  RECORDING,
-  STOPPED
-};
+#include "logging.h"
 
 // Global Variables
 static Window *window;
 static TextLayer  *text_layer;
-DataLoggingSessionRef logging_session;
+static DataLoggingSessionRef logging_session;
 static enum states state;
+static bool is_connection_setup = false;
 
 // Function declarations
-void handle_deinit();
+extern void main_deinit();
+
+/* Can encode up to 16 bytes
+ * @param length number of bytes to encode
+ */
+static void encode_bytes(unsigned char destination[], uint8_t startidx, int64_t source, uint8_t length) {
+  // Big endian encoding
+  for (int i = 0; i < length; i++) {
+    destination[startidx + i] = source >> 8 * (length - i - 1);
+  }
+}
 
 // Push data from the accelerometer data service to the data logging service
 static void cache_accel(AccelData * data, uint32_t num_samples) {
+  if (!is_connection_setup) {
+    /* Our first two messages set up the timestamp and sample rate.
+     * Due to issues with limited data storage on the Pebble, we send only
+     * the first time stamp, and interpolate additional timestamps by using
+     * the sample rate. As each message is designed to use only 6 bytes, we
+     * use a 44bit unsigned integer for time and 44bit unsigned integer for
+     * the sample rate.
+     */
+    unsigned char packed_setup[6];
+    encode_bytes(packed_setup, 0, data[0].timestamp, 6);
+    data_logging_log(logging_session, &packed_setup, 1);
+    encode_bytes(packed_setup, 5, SAMPLE_RATE, 6);
+    data_logging_log(logging_session, &packed_setup, 1);
+    is_connection_setup = true;
+    static char text[100];
+    text_layer_set_text(text_layer, text);
+  }
   // Array of 6 byte arrays
   unsigned char packed_data[num_samples][6];
   // Store the XYZ magnitudes in the data log
   for (uint32_t i = 0; i < num_samples; i++) {
-    packed_data[i][0] = data[i].x >> 8;
-    packed_data[i][1] = data[i].x;
-    packed_data[i][2] = data[i].y >> 8;
-    packed_data[i][3] = data[i].y;
-    packed_data[i][4] = data[i].z >> 8;
-    packed_data[i][5] = data[i].z;
+    encode_bytes(packed_data[i], 0, data[i].x, 2);
+    encode_bytes(packed_data[i], 2, data[i].y, 2);
+    encode_bytes(packed_data[i], 4, data[i].z, 2);
   }
   data_logging_log(logging_session, &packed_data, num_samples);
 }
@@ -55,7 +74,7 @@ static void switch_state(ClickRecognizerRef recognizer, void * context) {
   if (state == RECORDING)
     stop(NULL, NULL);
   else if (state == STOPPED)
-    handle_deinit();
+    main_deinit();
 }
 
 // Setup button handling
@@ -82,7 +101,7 @@ void logging_init(int index){
   window_stack_push(window, true);
 }
 
-void logging_deinit(void){
+void logging_deinit(){
   // When we don't need to log anything else, we can close off the session.
   data_logging_finish(logging_session);
   // De-register acceleration event handler (needed when using back to exit screen)
