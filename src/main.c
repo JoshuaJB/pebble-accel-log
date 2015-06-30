@@ -1,23 +1,20 @@
 #include <pebble.h>
+#include <welcome.h>
   
 // Flag variable to protect from double frees
 static int finished = false;
 
-// Function Prototypes
-void welcome_init(void);
-void welcome_deinit(void);
-
 void handle_init(void) {
-	// Load the welcome screen
-	welcome_init();
+  // Load the welcome screen
+  welcome_init();
 }
 
 void handle_deinit(void) {
   if (finished)
     return;
-	window_stack_pop_all(false);
+  window_stack_pop_all(false);
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Finished pop");
-	welcome_deinit();
+  welcome_deinit();
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Finished main");
   finished = true;
 }

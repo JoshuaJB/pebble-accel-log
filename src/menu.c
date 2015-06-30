@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include <prerun.h>
 	
 // Constants
 #define NUMBER_OF_SECTIONS 1
@@ -9,10 +10,6 @@ static Window *window;
 static SimpleMenuLayer *menu_layer;
 static SimpleMenuSection section_array[NUMBER_OF_SECTIONS];
 static SimpleMenuItem item_array[NUMBER_OF_ITEMS];
-
-// Function pointers
-void prerun_init(int);
-void prerun_deinit(void);
 
 // Loads the next screen whenever a menu item is selected
 static void menu_select_callback(int index, void *context){
@@ -90,5 +87,5 @@ void menu_deinit(void){
 	layer_remove_from_parent(simple_menu_layer_get_layer(menu_layer));
 	simple_menu_layer_destroy(menu_layer);
 	window_destroy(window);
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Finished menu");
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "Finished menu");
 }

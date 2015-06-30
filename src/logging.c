@@ -1,5 +1,5 @@
 #include <pebble.h>
-	
+
 // Constants
 static const AccelSamplingRate SAMPLE_RATE = ACCEL_SAMPLING_10HZ;
 enum states {
@@ -14,7 +14,6 @@ DataLoggingSessionRef logging_session;
 static enum states state;
 
 // Function declarations
-static void switch_state(ClickRecognizerRef, void *);
 void handle_deinit();
 
 // Push data from the accelerometer data service to the data logging service
@@ -61,26 +60,26 @@ static void switch_state(ClickRecognizerRef recognizer, void * context) {
 
 // Setup button handling
 void click_config_provider3(Window *window) {
-	window_single_click_subscribe(BUTTON_ID_SELECT, switch_state);
-	window_single_click_subscribe(BUTTON_ID_UP, switch_state);	
-	window_single_click_subscribe(BUTTON_ID_DOWN, switch_state);
+  window_single_click_subscribe(BUTTON_ID_SELECT, switch_state);
+  window_single_click_subscribe(BUTTON_ID_UP, switch_state);	
+  window_single_click_subscribe(BUTTON_ID_DOWN, switch_state);
 }
 
 void logging_init(int index){
   // Create window and a text layer
-	window = window_create();
-	text_layer = text_layer_create(layer_get_bounds(window_get_root_layer(window)));
+  window = window_create();
+  text_layer = text_layer_create(layer_get_bounds(window_get_root_layer(window)));
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(text_layer));
   // Setup button handling
   window_set_click_config_provider(window, (ClickConfigProvider) click_config_provider3);
-	// Set Accelerometer to sample rate
+  // Set Accelerometer to sample rate
   accel_service_set_sampling_rate(SAMPLE_RATE);
-	// Start the data logging service, we use only one for the application duration
+  // Start the data logging service, we use only one for the application duration
   logging_session = data_logging_create(index, DATA_LOGGING_BYTE_ARRAY, 6, false);
-	// Start logging
+  // Start logging
   start(NULL, NULL);
   // Display window
-	window_stack_push(window, true);
+  window_stack_push(window, true);
 }
 
 void logging_deinit(void){
@@ -89,8 +88,8 @@ void logging_deinit(void){
   // De-register acceleration event handler (needed when using back to exit screen)
   accel_data_service_unsubscribe();
 	
-	layer_remove_from_parent(text_layer_get_layer(text_layer));
-	text_layer_destroy(text_layer);
-	window_destroy(window);
+  layer_remove_from_parent(text_layer_get_layer(text_layer));
+  text_layer_destroy(text_layer);
+  window_destroy(window);
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Finished logging");
 }
