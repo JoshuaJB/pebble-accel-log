@@ -1,4 +1,7 @@
-#include <welcome.c>
+#ifndef WELCOME_INCLUDE
+#define WELCOME_INCLUDE
 
-void welcome_init();
-void welcome_deinit();
+extern void welcome_init();
+extern void welcome_deinit();
+
+#endif

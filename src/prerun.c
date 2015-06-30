@@ -1,5 +1,6 @@
 #include <pebble.h>
-#include <logging.h>
+#include "logging.h"
+#include "prerun.h"
 
 // Global Variables
 static Window *window;
@@ -30,7 +31,7 @@ void prerun_init(int index){
   window_stack_push(window, true);
 }
 
-void prerun_deinit(void){
+void prerun_deinit(){
   logging_deinit();
   layer_remove_from_parent(text_layer_get_layer(text_layer));
   text_layer_destroy(text_layer);

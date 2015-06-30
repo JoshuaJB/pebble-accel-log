@@ -1,4 +1,7 @@
-#include <menu.c>
+#ifndef MENU_INCLUDE
+#define MENU_INCLUDEs
 
-void menu_init();
-void menu_deinit();
+extern void menu_init();
+extern void menu_deinit();
+
+#endif

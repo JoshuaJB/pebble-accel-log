@@ -1,4 +1,7 @@
-#include <logging.c>
+#ifndef LOGGING_INCLUDE
+#define LOGGING_INCLUDE
 
-void logging_init();
-void logging_deinit();
+extern void logging_init();
+extern void logging_deinit();
+
+#endif

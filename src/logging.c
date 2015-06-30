@@ -1,4 +1,5 @@
 #include <pebble.h>
+#include "logging.h"
 
 // Constants
 static const AccelSamplingRate SAMPLE_RATE = ACCEL_SAMPLING_10HZ;
@@ -14,7 +15,7 @@ DataLoggingSessionRef logging_session;
 static enum states state;
 
 // Function declarations
-void handle_deinit();
+extern void main_deinit();
 
 // Push data from the accelerometer data service to the data logging service
 static void cache_accel(AccelData * data, uint32_t num_samples) {
@@ -55,7 +56,7 @@ static void switch_state(ClickRecognizerRef recognizer, void * context) {
   if (state == RECORDING)
     stop(NULL, NULL);
   else if (state == STOPPED)
-    handle_deinit();
+    main_deinit();
 }
 
 // Setup button handling
@@ -82,7 +83,7 @@ void logging_init(int index){
   window_stack_push(window, true);
 }
 
-void logging_deinit(void){
+void logging_deinit(){
   // When we don't need to log anything else, we can close off the session.
   data_logging_finish(logging_session);
   // De-register acceleration event handler (needed when using back to exit screen)

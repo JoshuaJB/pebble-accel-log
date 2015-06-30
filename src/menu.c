@@ -1,5 +1,6 @@
 #include <pebble.h>
-#include <prerun.h>
+#include "menu.h"
+#include "prerun.h"
 	
 // Constants
 #define NUMBER_OF_SECTIONS 1
@@ -16,7 +17,7 @@ static void menu_select_callback(int index, void *context){
 	prerun_init(index);
 }
 
-void menu_init(void){
+void menu_init(){
 	window = window_create();
 	
 	Layer *window_layer = window_get_root_layer(window);
@@ -82,7 +83,7 @@ void menu_init(void){
 	window_stack_push(window, true);
 }
 
-void menu_deinit(void){
+void menu_deinit(){
 	prerun_deinit();
 	layer_remove_from_parent(simple_menu_layer_get_layer(menu_layer));
 	simple_menu_layer_destroy(menu_layer);
