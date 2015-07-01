@@ -275,7 +275,7 @@ public class MainActivity extends Activity implements View.OnClickListener{
         }
         @Override
         public String toString() {
-            return "\nX: " + x + ", Y: " + y + ", Z: " + z + ", Time: " + DateFormat.getDateTimeInstance().format(new Date(timestamp));
+            return String.format("\nX: %+5d, Y: %+5d, Z: %+5d, Time: %s", x, y, z, DateFormat.getDateTimeInstance().format(new Date(timestamp)));
         }
     }
 }
