@@ -31,14 +31,11 @@ static void cache_accel(AccelData * data, uint32_t num_samples) {
      * use a 44bit unsigned integer for time and 44bit unsigned integer for
      * the sample rate.
      */
-    unsigned char packed_setup[6];
-    encode_bytes(packed_setup, 0, data[0].timestamp, 6);
-    data_logging_log(logging_session, &packed_setup, 1);
-    encode_bytes(packed_setup, 5, SAMPLE_RATE, 6);
-    data_logging_log(logging_session, &packed_setup, 1);
+    unsigned char packed_setup[2][6];
+    encode_bytes(packed_setup[0], 0, data[0].timestamp, 6);
+    encode_bytes(packed_setup[1], 0, SAMPLE_RATE, 6);
+    data_logging_log(logging_session, &packed_setup, 2);
     is_connection_setup = true;
-    static char text[100];
-    text_layer_set_text(text_layer, text);
   }
   // Array of 6 byte arrays
   unsigned char packed_data[num_samples][6];
