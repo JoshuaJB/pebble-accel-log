@@ -1,7 +1,9 @@
 package me.jbakita.pebbledatalogging;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -18,6 +20,7 @@ import com.getpebble.android.kit.PebbleKit.PebbleDataLogReceiver;
 import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.Stack;
 import java.util.UUID;
 import java.util.ArrayList;
 
@@ -26,7 +29,7 @@ import java.util.ArrayList;
  * Implements a PebbleDataLogReceiver to process received log data, 
  * as well as a finished session.
  */
-public class MainActivity extends Activity implements View.OnClickListener{
+public class MainActivity extends Activity {
 
     // WATCHAPP_UUID *MUST* match the UUID used in the watchapp
     private static final UUID WATCHAPP_UUID = UUID.fromString("631b528e-c553-486c-b5ac-da08f63f01de");
@@ -44,14 +47,13 @@ public class MainActivity extends Activity implements View.OnClickListener{
         "CHEST",
         "NECK"
     };
-    private String[] activities = {"Pushups", "Situps", "Jumping Jacks", "Stretching", "Running", "Walking"};
+    private String[] activityStrings = {"Pushups", "Situps", "Jumping Jacks", "Stretching", "Running", "Walking"};
 
     private PebbleDataLogReceiver dataloggingReceiver = null;
     private final ArrayList<Sensor> sensors = new ArrayList<>();
+    private Stack<MotionActivity> activities = new Stack<>();
     private ArrayAdapter<Sensor> adapter;
     private Button startStopButton;
-    private long activityStart = 0;
-    private long activityEnd = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,8 +85,13 @@ public class MainActivity extends Activity implements View.OnClickListener{
 
         // Setup start/stop button
         startStopButton = (Button)findViewById(R.id.startstopbutton);
-        startStopButton.setOnClickListener(this);
+        startStopButton.setOnClickListener(new startStopListener());
         startStopButton.setText("Start");
+
+        // Setup save button
+        Button saveButton = (Button)findViewById(R.id.savebutton);
+        saveButton.setOnClickListener(new saveListener());
+        saveButton.setText("Save");
     }
 
     @Override
@@ -165,32 +172,32 @@ public class MainActivity extends Activity implements View.OnClickListener{
         return ans;
     }
 
-    @Override
-    public void onClick(View v) {
-        if (activityStart == 0 && activityEnd == 0) {
-            // Clear previous state
-            sensors.clear();
-            adapter.notifyDataSetChanged();
-            // Switch to recording mode
-            startStopButton.setText("Stop");
-            activityStart = System.currentTimeMillis();
-        }
-        else if (activityEnd == 0) {
-            // Finish recording
-            startStopButton.setText("Save");
-            activityEnd = System.currentTimeMillis();
-        }
-        else {
-            // Save data
-            finishAndSaveReading();
-            // Begin reset for next mode
-            startStopButton.setText("Start");
-            activityEnd = 0;
-            activityStart = 0;
-        }
+    private void getMotionActivity(final MotionActivity act) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("What activity did you complete?")
+                .setItems(activityStrings, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        act.name = activityStrings[which];
+                    }
+                });
+        builder.create().show();
+
     }
 
     private void finishAndSaveReading() {
+        //@Override
+        //public Dialog onCreateDialog(Bundle savedInstanceState) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("What activity did you complete?")
+                    .setItems(activityStrings, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            // The 'which' argument contains the index position
+                            // of the selected item
+                        }
+                    });
+            //return
+            builder.create().show();
+        //}
         /* TODO: Get activity type from user then save the sensor readings truncated *
          *       to the difference between activityStart and activityEnd.            */
         Log.w("MainActivity", sensors.toString());
@@ -276,6 +283,40 @@ public class MainActivity extends Activity implements View.OnClickListener{
         @Override
         public String toString() {
             return String.format("\nX: %+5d, Y: %+5d, Z: %+5d, Time: %s", x, y, z, DateFormat.getDateTimeInstance().format(new Date(timestamp)));
+        }
+    }
+    private class MotionActivity {
+        public long startTime = -1;
+        public long endTime = -1;
+        public String name = "";
+        public MotionActivity(long startTime) {
+            this.startTime = startTime;
+        }
+        public boolean isFinished() {
+            return startTime != -1 && endTime != -1;
+        }
+
+    }
+    private class startStopListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            if (!activities.isEmpty() && activities.peek().isFinished()) {
+                // Start recording
+                startStopButton.setText("Stop");
+                activities.push(new MotionActivity(System.currentTimeMillis()));
+            }
+            else {
+                // End recording
+                startStopButton.setText("Start");
+                activities.peek().endTime = System.currentTimeMillis();
+                getMotionActivity(activities.peek());
+            }
+        }
+    }
+    private class saveListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            finishAndSaveReading();
         }
     }
 }
