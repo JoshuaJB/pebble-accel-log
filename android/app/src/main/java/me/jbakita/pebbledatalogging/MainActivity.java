@@ -3,6 +3,7 @@ package me.jbakita.pebbledatalogging;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,6 +16,9 @@ import android.widget.ProgressBar;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.PebbleKit.PebbleDataLogReceiver;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -194,7 +198,37 @@ public class MainActivity extends Activity implements View.OnClickListener{
         /* TODO: Get activity type from user then save the sensor readings truncated *
          *       to the difference between activityStart and activityEnd.            */
         Log.w("MainActivity", sensors.toString());
+
+        String fileName = "Data saved on " + new Date() + ".txt";
+        FileOutputStream outputStream;
+
+        if (isExternalStorageWritable()){
+
+            File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
+
+            try{
+                outputStream = new FileOutputStream(file);
+                outputStream.write(sensors.toString().getBytes());
+                outputStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        } else {
+            Log.e("MainActivity", "Unable to write to external storage");
+        }
+
     }
+
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
+    }
+
+
     private class Sensor {
         private String name;
         private long currTimestamp = 0;
