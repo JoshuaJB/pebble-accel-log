@@ -22,8 +22,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Stack;
+import java.util.TimeZone;
 import java.util.UUID;
 import java.util.ArrayList;
 
@@ -191,11 +193,15 @@ public class MainActivity extends Activity {
         for (int i = 0; i < activities.size(); i++) {
             for (int j = 0; j < sensors.size(); j++) {
                 ArrayList<Reading> readings = sensors.get(j).getReadings();
-                // TODO: Handle missing external storage
+                // TODO: Handle missing/unavailable external storage
                 try {
-                    File dir = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "PebbleDataLogging");
-                    File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), activities.get(i).name + "_" + features[j] + "_" + System.currentTimeMillis());
+                    // Get/create our application's save folder
+                    File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/PebbleDataLogging/");
+                    dir.mkdir();
+                    // Create the file in the <activity name>-<sensor name>-<system time>.csv format
+                    File file = new File(dir, activities.get(i).name + "-" + features[j] + "-" + System.currentTimeMillis() + ".csv");
                     FileOutputStream outputStream = new FileOutputStream(file);
+                    // Write all the readings which correlate to our current activity
                     for (int k = 0; k < readings.size(); k++) {
                         if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
                             outputStream.write(readings.get(j).toString().getBytes());
@@ -205,7 +211,7 @@ public class MainActivity extends Activity {
                 } catch (Exception e) {e.printStackTrace();}
             }
         }
-        Log.w("MainActivity", sensors.toString());
+        //Log.w("MainActivity", sensors.toString());
     }
     private class Sensor {
         private String name;
@@ -311,12 +317,12 @@ public class MainActivity extends Activity {
             if (activities.isEmpty() || activities.get(activities.size() - 1).isFinished()) {
                 // Start recording
                 startStopButton.setText("Stop");
-                activities.add(new MotionActivity(System.currentTimeMillis()));
+                activities.add(new MotionActivity(System.currentTimeMillis() + TimeZone.getDefault().getRawOffset() + TimeZone.getDefault().getDSTSavings()));
             }
             else {
                 // End recording
                 startStopButton.setText("Start");
-                activities.get(activities.size() - 1).endTime = System.currentTimeMillis();
+                activities.get(activities.size() - 1).endTime = System.currentTimeMillis() + TimeZone.getDefault().getRawOffset() + TimeZone.getDefault().getDSTSavings();
                 getMotionActivity(activities.get(activities.size() - 1));
             }
         }
