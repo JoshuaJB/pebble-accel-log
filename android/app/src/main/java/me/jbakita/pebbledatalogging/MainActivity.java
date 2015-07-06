@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -24,6 +25,7 @@ import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.Stack;
 import java.util.TimeZone;
 import java.util.UUID;
@@ -199,19 +201,24 @@ public class MainActivity extends Activity {
                     File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/PebbleDataLogging/");
                     dir.mkdir();
                     // Create the file in the <activity name>-<sensor name>-<system time>.csv format
-                    File file = new File(dir, activities.get(i).name + "-" + features[j] + "-" + System.currentTimeMillis() + ".csv");
+                    File file = new File(dir, activities.get(i).name + " " + features[j] + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
                     FileOutputStream outputStream = new FileOutputStream(file);
+                    // Write the colunm headers
+                    outputStream.write(String.format("X,    Y,    Z,    Time\n").getBytes());
                     // Write all the readings which correlate to our current activity
                     for (int k = 0; k < readings.size(); k++) {
+                        // TODO: Warn when it seems like a sensor data set is incomplete
                         if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
-                            outputStream.write(readings.get(j).toString().getBytes());
+                            outputStream.write(String.format(Locale.US, "%+5d,%+5d,%+5d,%14d\n", readings.get(k).x, readings.get(k).y, readings.get(k).z, readings.get(k).timestamp).getBytes());
                         }
                     }
                     outputStream.close();
+                    // Workaround for Android bug #38282
+                    MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
                 } catch (Exception e) {e.printStackTrace();}
             }
         }
-        //Log.w("MainActivity", sensors.toString());
+        Log.w("MainActivity", sensors.toString());
     }
     private class Sensor {
         private String name;
