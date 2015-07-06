@@ -300,7 +300,7 @@ public class MainActivity extends Activity {
     private class startStopListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            if (!activities.isEmpty() && activities.peek().isFinished()) {
+            if (activities.isEmpty() || activities.peek().isFinished()) {
                 // Start recording
                 startStopButton.setText("Stop");
                 activities.push(new MotionActivity(System.currentTimeMillis()));
