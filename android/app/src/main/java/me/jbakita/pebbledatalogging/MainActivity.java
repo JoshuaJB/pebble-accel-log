@@ -51,7 +51,7 @@ public class MainActivity extends Activity {
 
     private PebbleDataLogReceiver dataloggingReceiver = null;
     private final ArrayList<Sensor> sensors = new ArrayList<>();
-    private Stack<MotionActivity> activities = new Stack<>();
+    private final ArrayList<MotionActivity> activities = new ArrayList<>();
     private ArrayAdapter<Sensor> adapter;
     private Button startStopButton;
 
@@ -185,19 +185,6 @@ public class MainActivity extends Activity {
     }
 
     private void finishAndSaveReading() {
-        //@Override
-        //public Dialog onCreateDialog(Bundle savedInstanceState) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("What activity did you complete?")
-                    .setItems(activityStrings, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // The 'which' argument contains the index position
-                            // of the selected item
-                        }
-                    });
-            //return
-            builder.create().show();
-        //}
         /* TODO: Get activity type from user then save the sensor readings truncated *
          *       to the difference between activityStart and activityEnd.            */
         Log.w("MainActivity", sensors.toString());
@@ -300,16 +287,16 @@ public class MainActivity extends Activity {
     private class startStopListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            if (activities.isEmpty() || activities.peek().isFinished()) {
+            if (activities.isEmpty() || activities.get(activities.size()).isFinished()) {
                 // Start recording
                 startStopButton.setText("Stop");
-                activities.push(new MotionActivity(System.currentTimeMillis()));
+                activities.add(new MotionActivity(System.currentTimeMillis()));
             }
             else {
                 // End recording
                 startStopButton.setText("Start");
-                activities.peek().endTime = System.currentTimeMillis();
-                getMotionActivity(activities.peek());
+                activities.get(activities.size()).endTime = System.currentTimeMillis();
+                getMotionActivity(activities.get(activities.size()));
             }
         }
     }
