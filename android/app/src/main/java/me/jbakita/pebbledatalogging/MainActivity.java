@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,8 @@ import android.widget.ProgressBar;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.PebbleKit.PebbleDataLogReceiver;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -185,8 +188,23 @@ public class MainActivity extends Activity {
     }
 
     private void finishAndSaveReading() {
-        /* TODO: Get activity type from user then save the sensor readings truncated *
-         *       to the difference between activityStart and activityEnd.            */
+        for (int i = 0; i < activities.size(); i++) {
+            for (int j = 0; j < sensors.size(); j++) {
+                ArrayList<Reading> readings = sensors.get(j).getReadings();
+                // TODO: Handle missing external storage
+                try {
+                    File dir = new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS), "PebbleDataLogging");
+                    File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), activities.get(i).name + "_" + features[j] + "_" + System.currentTimeMillis());
+                    FileOutputStream outputStream = new FileOutputStream(file);
+                    for (int k = 0; k < readings.size(); k++) {
+                        if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
+                            outputStream.write(readings.get(j).toString().getBytes());
+                        }
+                    }
+                    outputStream.close();
+                } catch (Exception e) {e.printStackTrace();}
+            }
+        }
         Log.w("MainActivity", sensors.toString());
     }
     private class Sensor {
@@ -236,6 +254,9 @@ public class MainActivity extends Activity {
         }
         public int getSampleRate() {
             return sampleRate;
+        }
+        public ArrayList<Reading> getReadings() {
+            return readings;
         }
         @Override
         public boolean equals(Object obj) {
@@ -287,7 +308,7 @@ public class MainActivity extends Activity {
     private class startStopListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            if (activities.isEmpty() || activities.get(activities.size()).isFinished()) {
+            if (activities.isEmpty() || activities.get(activities.size() - 1).isFinished()) {
                 // Start recording
                 startStopButton.setText("Stop");
                 activities.add(new MotionActivity(System.currentTimeMillis()));
@@ -295,8 +316,8 @@ public class MainActivity extends Activity {
             else {
                 // End recording
                 startStopButton.setText("Start");
-                activities.get(activities.size()).endTime = System.currentTimeMillis();
-                getMotionActivity(activities.get(activities.size()));
+                activities.get(activities.size() - 1).endTime = System.currentTimeMillis();
+                getMotionActivity(activities.get(activities.size() - 1));
             }
         }
     }
