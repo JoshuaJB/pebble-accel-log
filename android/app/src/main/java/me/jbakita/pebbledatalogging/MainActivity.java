@@ -208,9 +208,9 @@ public class MainActivity extends Activity {
                     // Write all the readings which correlate to our current activity
                     for (int k = 0; k < readings.size(); k++) {
                         // TODO: Warn when it seems like a sensor data set is incomplete
-                        if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
+                        //if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
                             outputStream.write(String.format(Locale.US, "%+5d,%+5d,%+5d,%14d\n", readings.get(k).x, readings.get(k).y, readings.get(k).z, readings.get(k).timestamp).getBytes());
-                        }
+                        //}
                     }
                     outputStream.close();
                     // Workaround for Android bug #38282
@@ -263,7 +263,7 @@ public class MainActivity extends Activity {
             return name;
         }
         public String getInfo() {
-            return readings.size() + " readings taken.";
+            return readings.size() + " readings taken over " + (readings.size() / sampleRate) / 60 + "m " + (readings.size() / sampleRate) % 60 + "s";
         }
         public int getSampleRate() {
             return sampleRate;
