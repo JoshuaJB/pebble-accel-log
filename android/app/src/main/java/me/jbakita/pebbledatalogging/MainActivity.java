@@ -57,8 +57,8 @@ public class MainActivity extends Activity {
     private String[] activityStrings = {"Pushups", "Situps", "Jumping Jacks", "Stretching", "Running", "Walking"};
 
     private PebbleDataLogReceiver dataloggingReceiver = null;
-    private final ArrayList<Sensor> sensors = new ArrayList<>();
-    private final ArrayList<MotionActivity> activities = new ArrayList<>();
+    private final ArrayList<Sensor> sensors = new ArrayList<Sensor>();
+    private final ArrayList<MotionActivity> activities = new ArrayList<MotionActivity>();
     private ArrayAdapter<Sensor> adapter;
     private Button startStopButton;
 
@@ -198,7 +198,7 @@ public class MainActivity extends Activity {
                 // TODO: Handle missing/unavailable external storage
                 try {
                     // Get/create our application's save folder
-                    File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/PebbleDataLogging/");
+                    File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/PebbleDataLogging/");
                     dir.mkdir();
                     // Create the file in the <activity name>-<sensor name>-<system time>.csv format
                     File file = new File(dir, activities.get(i).name + " " + features[j] + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
@@ -224,7 +224,7 @@ public class MainActivity extends Activity {
         private String name;
         private long currTimestamp = 0;
         private int sampleRate = 0;
-        private ArrayList<Reading> readings = new ArrayList<>();
+        private ArrayList<Reading> readings = new ArrayList<Reading>();
         /* Initialize the sensor with a name. Setting the sample rate, and start time are required before adding readings.
          * @param name The sensor name, used only for display
          */
