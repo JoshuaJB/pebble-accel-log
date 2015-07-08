@@ -197,6 +197,8 @@ public class MainActivity extends Activity {
                 ArrayList<Reading> readings = sensors.get(j).getReadings();
                 // TODO: Handle missing/unavailable external storage
                 try {
+                    long lastReading = 0;
+                    long firstReading = 0;
                     // Get/create our application's save folder
                     File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/PebbleDataLogging/");
                     dir.mkdir();
@@ -204,13 +206,22 @@ public class MainActivity extends Activity {
                     File file = new File(dir, activities.get(i).name + " " + features[j] + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
                     FileOutputStream outputStream = new FileOutputStream(file);
                     // Write the colunm headers
-                    outputStream.write(String.format("X,    Y,    Z,    Time\n").getBytes());
+                    outputStream.write(String.format("X(mG),Y(mG),Z(mG),Time(ms)\n").getBytes());
                     // Write all the readings which correlate to our current activity
                     for (int k = 0; k < readings.size(); k++) {
-                        // TODO: Warn when it seems like a sensor data set is incomplete
-                        //if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
+                        if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
+                            if (firstReading == 0)
+                                firstReading = readings.get(k).timestamp;
                             outputStream.write(String.format(Locale.US, "%+5d,%+5d,%+5d,%14d\n", readings.get(k).x, readings.get(k).y, readings.get(k).z, readings.get(k).timestamp).getBytes());
-                        //}
+                            lastReading = readings.get(k).timestamp;
+                        }
+                    }
+                    // Do some validation on the dataset
+                    if (lastReading + 1000 < activities.get(i).endTime) {
+                        displayDialog("Warning!", "It seems like the dataset you just saved stopped sooner than expected. Make sure that you have all your sensor data.");
+                    }
+                    else if (firstReading - 1000 > activities.get(i).startTime) {
+                        displayDialog("Warning!", "It seems like the dataset you just saved started later than expected. Make sure that you have all your sensor data.");
                     }
                     outputStream.close();
                     // Workaround for Android bug #38282
@@ -219,6 +230,15 @@ public class MainActivity extends Activity {
             }
         }
         Log.w("MainActivity", sensors.toString());
+    }
+
+    private AlertDialog displayDialog(String title, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(message)
+                .setTitle(title);
+        AlertDialog dia = builder.create();
+        dia.show();
+        return dia;
     }
     private class Sensor {
         private String name;
@@ -257,6 +277,7 @@ public class MainActivity extends Activity {
                 r.setTimestamp(currTimestamp);
             else
                 r.setTimestamp(currTimestamp += 1000 / sampleRate);
+            // NOTE: There's ~ a 3% bias on the reading frequency not compensated for
             readings.add(r);
         }
         public String getTitle() {
