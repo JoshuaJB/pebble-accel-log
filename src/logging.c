@@ -1,12 +1,22 @@
 #include <pebble.h>
 #include "logging.h"
 
+// Constants
+static const AccelSamplingRate PAL_SAMPLE_RATE = ACCEL_SAMPLING_25HZ;
+enum states {
+  RECORDING,
+  STOPPED
+};
+
 // Global Variables
 static Window *window;
 static TextLayer  *text_layer;
 static DataLoggingSessionRef logging_session;
 static enum states state;
 static bool is_connection_setup = false;
+static const int DEBUG_TIMING = 0;
+static uint16_t lastMSReading = 0;
+static time_t lastSReading = 0;
 
 // Function declarations
 extern void main_deinit();
@@ -33,9 +43,17 @@ static void cache_accel(AccelData * data, uint32_t num_samples) {
      */
     unsigned char packed_setup[2][6];
     encode_bytes(packed_setup[0], 0, data[0].timestamp, 6);
-    encode_bytes(packed_setup[1], 0, SAMPLE_RATE, 6);
+    encode_bytes(packed_setup[1], 0, PAL_SAMPLE_RATE, 6);
     data_logging_log(logging_session, &packed_setup, 2);
     is_connection_setup = true;
+    if (DEBUG_TIMING)
+      time_ms(&lastSReading, &lastMSReading);
+  }
+  else if (DEBUG_TIMING) {
+    static char text[96];
+    snprintf(text, 96, "Time diff: %lu\nShould be: 100\n", (time(NULL) - lastSReading) * 1000 + (time_ms(NULL, NULL) - lastMSReading));
+    text_layer_set_text(text_layer, text);
+    time_ms(&lastSReading, &lastMSReading);
   }
   // Array of 6 byte arrays
   unsigned char packed_data[num_samples][6];
@@ -52,7 +70,7 @@ static void cache_accel(AccelData * data, uint32_t num_samples) {
 static void start(ClickRecognizerRef recognizer, void *context) {
   state = RECORDING;
   // Register acceleration event handler with a 25 sample buffer
-  accel_data_service_subscribe(25, cache_accel);
+  accel_data_service_subscribe(10, cache_accel);
   // Display the pre-run message
   text_layer_set_text(text_layer, "Logging...\n\n(press any button to stop)");
 }
@@ -89,7 +107,8 @@ void logging_init(int index){
   // Setup button handling
   window_set_click_config_provider(window, (ClickConfigProvider) click_config_provider3);
   // Set Accelerometer to sample rate
-  accel_service_set_sampling_rate(SAMPLE_RATE);
+  // NOT WORKING: Sample rate is always 25HZ regardless
+  accel_service_set_sampling_rate(PAL_SAMPLE_RATE);
   // Start the data logging service, we use only one for the application duration
   logging_session = data_logging_create(index, DATA_LOGGING_BYTE_ARRAY, 6, false);
   // Start logging
