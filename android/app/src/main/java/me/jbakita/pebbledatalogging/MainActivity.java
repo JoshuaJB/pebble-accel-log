@@ -22,11 +22,8 @@ import com.getpebble.android.kit.PebbleKit.PebbleDataLogReceiver;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DateFormat;
-import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Stack;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.ArrayList;
@@ -110,31 +107,44 @@ public class MainActivity extends Activity {
             public void receiveData(Context context, UUID logUuid, Long timestamp, Long tag, byte[] data) {
                 // Check this is a valid data log
                 if (tag.intValue() <= features.length) {
-                    if (sensors.indexOf(new Sensor(features[tag.intValue()])) == -1) {
-                        /* Add new sensor
-                         * To conserve data, but maximize accuracy, the first 'reading'
-                         * for each data log ID is the beginning timestamp and the
-                         * second 'reading' is the sampling rate.
-                         */
-                        long beginningTimestamp = decodeBytes(Arrays.copyOf(data, 6));
-                        Sensor sensor = new Sensor(features[tag.intValue()]);
-                        sensor.setBeginningTimestamp(beginningTimestamp);
+                    // To distinguish between timestamps and readings,
+                    // the first bit is 0 for readings and 1 for timestamp
+                    /* To conserve data, but maximize accuracy, the first 'reading'
+                     * for each data log ID is the beginning timestamp.
+                     */
+                    if (sensors.indexOf(new Sensor(features[tag.intValue()], 0)) == -1) {
+                        // First reading must be a timestamp
+                        if (data[0] >> 31 != 0xffffffff) {
+                            displayDialog("Error", "It seems like a data buffer is out of sync. Data will be corrupted. Please flush buffers and try again.");
+                            return;
+                        }
+                        // Erase the tag bit with sign extension to prep for decoding
+                        data[0] = (byte)(data[0] << 25 >> 25);
+                        // Decode and save
+                        Sensor sensor = new Sensor(features[tag.intValue()], decodeBytes(data));
                         sensors.add(sensor);
                     }
-                    else if (sensors.get(sensors.indexOf(new Sensor(features[tag.intValue()]))).getSampleRate() == 0) {
-                        // Finish sensor initialization. See above comment.
-                        Sensor sensor = sensors.get(sensors.indexOf(new Sensor(features[tag.intValue()])));
-                        sensor.setSampleRate((int)decodeBytes(data));
+                    else if (data[0] >> 31 == 0xffffffff) {
+                        // We have a timestamp
+                        // Erase the tag bit with sign extension to prep for decoding
+                        data[0] = (byte)(data[0] << 25 >> 25);
+                        // Decode and add timestamp
+                        long syncTimestamp = decodeBytes(data);
+                        Sensor sensor = sensors.get(sensors.indexOf(new Sensor(features[tag.intValue()], 0)));
+                        sensor.addTimestamp(syncTimestamp);
+                        // Refresh UI
+                        adapter.notifyDataSetChanged();
                     }
                     else {
-                        // Update existing sensor
+                        // We have a reading
+                        // Erase the tag bit with sign extension to prep for decoding
+                        data[0] = (byte)(data[0] << 25 >> 25);
+                        // Decode and add reading
                         int x = (int)decodeBytes(new byte[]{data[0], data[1]});
                         int y = (int)decodeBytes(new byte[]{data[2], data[3]});
                         int z = (int)decodeBytes(new byte[]{data[4], data[5]});
-                        Sensor sensor = sensors.get(sensors.indexOf(new Sensor(features[tag.intValue()])));
+                        Sensor sensor = sensors.get(sensors.indexOf(new Sensor(features[tag.intValue()], 0)));
                         sensor.addReading(new Reading(x, y, z));
-                        // Refresh UI
-                        adapter.notifyDataSetChanged();
                     }
                 }
                 else {
@@ -206,7 +216,7 @@ public class MainActivity extends Activity {
                     File file = new File(dir, activities.get(i).name + " " + features[j] + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
                     FileOutputStream outputStream = new FileOutputStream(file);
                     // Write the colunm headers
-                    outputStream.write(String.format("X(mG),Y(mG),Z(mG),Time(ms)\n").getBytes());
+                    outputStream.write("X(mG),Y(mG),Z(mG),Time(ms)\n".getBytes());
                     // Write all the readings which correlate to our current activity
                     for (int k = 0; k < readings.size(); k++) {
                         if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
@@ -242,24 +252,16 @@ public class MainActivity extends Activity {
     }
     private class Sensor {
         private String name;
-        private long currTimestamp = 0;
-        private int sampleRate = 0;
+        private long lastTimestamp = 0;
         private ArrayList<Reading> readings = new ArrayList<Reading>();
+        private ArrayList<Reading> readingBuffer = new ArrayList<Reading>();
         /* Initialize the sensor with a name. Setting the sample rate, and start time are required before adding readings.
          * @param name The sensor name, used only for display
+         * @param timestamp ms since POSIX epoch at which this sensor started
          */
-        public Sensor(String name) {
+        public Sensor(String name, long timestamp) {
             this.name = name;
-        }
-        /* Set the sensor sample rate in HZ, required before adding readings
-         */
-        public void setSampleRate(int sampleRate) {
-            this.sampleRate = sampleRate;
-        }
-        /* Set the timestamp in ms since the POSIX epoch at which the sensor started
-         */
-        public void setBeginningTimestamp(long t) {
-            currTimestamp = t;
+            this.lastTimestamp = timestamp;
         }
         /* Add a sequential accelerometer reading. The time is automatically calculated.
          * @param r the reading to add
@@ -268,26 +270,38 @@ public class MainActivity extends Activity {
          */
         public void addReading(Reading r) {
             // Check that everything is setup
-            if (sampleRate == 0)
-                throw new UnsupportedOperationException("No sample rate set on sensor");
-            else if (currTimestamp == 0)
+            if (lastTimestamp == 0)
                 throw new UnsupportedOperationException("No starting timestamp set on sensor");
-            // Log the reading
-            if (readings.size() == 0)
-                r.setTimestamp(currTimestamp);
-            else
-                r.setTimestamp(currTimestamp += 1000 / sampleRate);
-            // NOTE: There's ~ a 3% bias on the reading frequency not compensated for
-            readings.add(r);
+            // Log the reading (we add timestamps later)
+            readingBuffer.add(r);
         }
         public String getTitle() {
             return name;
         }
         public String getInfo() {
-            return readings.size() + " readings taken over " + (readings.size() / sampleRate) / 60 + "m " + (readings.size() / sampleRate) % 60 + "s";
+            return readings.size() + " readings taken over " + getDuration() / 60000 + "m " + getDuration() % 60000 / 1000 + "s " + getDuration() % 60000 % 1000 + "ms";
         }
-        public int getSampleRate() {
-            return sampleRate;
+        /* Get the duration of time that this sensor has been monitoring in ms
+         */
+        public long getDuration() {
+            if (readings.isEmpty())
+                return 0;
+            return readings.get(readings.size() - 1).timestamp - readings.get(0).timestamp;
+        }
+        public void addTimestamp(long t) {
+            if (readingBuffer.isEmpty())
+                throw new UnsupportedOperationException("No readings in buffer. Cannot add timestamp.");
+            long dur = t - lastTimestamp;
+            double readingSize = dur / (double)(readingBuffer.size() + 1);
+            Reading reading0 = readingBuffer.remove(0);
+            reading0.setTimestamp(lastTimestamp);
+            readings.add(reading0);
+            for (Reading r : readingBuffer) {
+                r.setTimestamp(lastTimestamp += readingSize);
+                readings.add(r);
+            }
+            lastTimestamp = t;
+            readingBuffer.clear();
         }
         public ArrayList<Reading> getReadings() {
             return readings;
