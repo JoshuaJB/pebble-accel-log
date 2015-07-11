@@ -6,6 +6,7 @@
 static Window *window;
 static TextLayer  *text_layer;
 static int menu_index;
+static char *item_array[] = {"Dominant Wrist", "Non-Dominant Wrist", "Waist", "Right Ankle", "Left Ankle" , "Upper Dominant Arm", "Upper Non-Dominant Arm", "Right Thigh", "Left Thigh", "Chest", "Neck"};
 
 // Called whenever a button is pushed to start logging
 void start_logging(ClickRecognizerRef recognizer, void *context){
@@ -23,7 +24,9 @@ void prerun_init(int index){
   menu_index = index;
   window = window_create();
   text_layer = text_layer_create(layer_get_bounds(window_get_root_layer(window)));
-  text_layer_set_text(text_layer, "Ready to go!\n\nThis sensor will monitor your motion. Press the back button to choose a different part of the body or press any button on the right to begin logging.");
+	static char text[128];
+	snprintf(text, 128, "Ready to go! - %s\n\nThis sensor will monitor your motion. Press the back button to choose a different part of the body or press any button on the right to begin logging.", item_array[index]);
+	text_layer_set_text(text_layer, text);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(text_layer));
 	
   window_set_click_config_provider(window, (ClickConfigProvider) click_config_provider2);
