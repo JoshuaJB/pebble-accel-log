@@ -213,7 +213,7 @@ public class MainActivity extends Activity {
                     File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/PebbleDataLogging/");
                     dir.mkdir();
                     // Create the file in the <activity name>-<sensor name>-<system time>.csv format
-                    File file = new File(dir, activities.get(i).name + " " + features[j] + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
+                    File file = new File(dir, activities.get(i).name + " " + sensors.get(j).getTitle() + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
                     FileOutputStream outputStream = new FileOutputStream(file);
                     // Write the colunm headers
                     outputStream.write("X(mG),Y(mG),Z(mG),Time(ms)\n".getBytes());
