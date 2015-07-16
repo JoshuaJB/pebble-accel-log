@@ -202,44 +202,56 @@ public class MainActivity extends Activity {
     }
 
     private void finishAndSaveReading() {
-        for (int i = 0; i < activities.size(); i++) {
-            for (int j = 0; j < sensors.size(); j++) {
-                ArrayList<Reading> readings = sensors.get(j).getReadings();
-                // TODO: Handle missing/unavailable external storage
-                try {
-                    long lastReading = 0;
-                    long firstReading = 0;
-                    // Get/create our application's save folder
-                    File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/PebbleDataLogging/");
-                    dir.mkdir();
-                    // Create the file in the <activity name>-<sensor name>-<system time>.csv format
-                    File file = new File(dir, activities.get(i).name + " " + sensors.get(j).getTitle() + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
-                    FileOutputStream outputStream = new FileOutputStream(file);
-                    // Write the colunm headers
-                    outputStream.write("X(mG),Y(mG),Z(mG),Time(ms)\n".getBytes());
-                    // Write all the readings which correlate to our current activity
-                    for (int k = 0; k < readings.size(); k++) {
-                        if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
-                            if (firstReading == 0)
-                                firstReading = readings.get(k).timestamp;
-                            outputStream.write(String.format(Locale.US, "%+5d,%+5d,%+5d,%14d\n", readings.get(k).x, readings.get(k).y, readings.get(k).z, readings.get(k).timestamp).getBytes());
-                            lastReading = readings.get(k).timestamp;
+
+        if (!isExternalStorageWritable()) {
+            displayDialog("Error", "External Storage not found.");
+        } else {
+            for (int i = 0; i < activities.size(); i++) {
+                for (int j = 0; j < sensors.size(); j++) {
+                    ArrayList<Reading> readings = sensors.get(j).getReadings();
+                    try {
+                        long lastReading = 0;
+                        long firstReading = 0;
+                        // Get/create our application's save folder
+                        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/PebbleDataLogging/");
+                        dir.mkdir();
+                        // Create the file in the <activity name>-<sensor name>-<system time>.csv format
+                        File file = new File(dir, activities.get(i).name + " " + sensors.get(j).getTitle() + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
+                        FileOutputStream outputStream = new FileOutputStream(file);
+                        // Write the colunm headers
+                        outputStream.write("X(mG),Y(mG),Z(mG),Time(ms)\n".getBytes());
+                        // Write all the readings which correlate to our current activity
+                        for (int k = 0; k < readings.size(); k++) {
+                            if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
+                                if (firstReading == 0)
+                                    firstReading = readings.get(k).timestamp;
+                                outputStream.write(String.format(Locale.US, "%+5d,%+5d,%+5d,%14d\n", readings.get(k).x, readings.get(k).y, readings.get(k).z, readings.get(k).timestamp).getBytes());
+                                lastReading = readings.get(k).timestamp;
+                            }
                         }
-                    }
-                    // Do some validation on the dataset
-                    if (lastReading + 1000 < activities.get(i).endTime) {
-                        displayDialog("Warning!", "It seems like the dataset you just saved stopped sooner than expected. Make sure that you have all your sensor data.");
-                    }
-                    else if (firstReading - 1000 > activities.get(i).startTime) {
-                        displayDialog("Warning!", "It seems like the dataset you just saved started later than expected. Make sure that you have all your sensor data.");
-                    }
-                    outputStream.close();
-                    // Workaround for Android bug #38282
-                    MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
-                } catch (Exception e) {e.printStackTrace();}
+                        // Do some validation on the dataset
+                        if (lastReading + 1000 < activities.get(i).endTime) {
+                            displayDialog("Warning!", "It seems like the dataset you just saved stopped sooner than expected. Make sure that you have all your sensor data.");
+                        }
+                        else if (firstReading - 1000 > activities.get(i).startTime) {
+                            displayDialog("Warning!", "It seems like the dataset you just saved started later than expected. Make sure that you have all your sensor data.");
+                        }
+                        outputStream.close();
+                        // Workaround for Android bug #38282
+                        MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
+                    } catch (Exception e) {e.printStackTrace();}
+                }
             }
         }
         Log.w("MainActivity", sensors.toString());
+    }
+
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
     }
 
     private AlertDialog displayDialog(String title, String message) {
