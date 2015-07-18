@@ -96,6 +96,17 @@ public class MainActivity extends Activity {
         Button saveButton = (Button)findViewById(R.id.savebutton);
         saveButton.setOnClickListener(new saveListener());
         saveButton.setText("Save");
+
+        //Display instructions
+        displayDialog("Instructions", "(1) Press the Start button on the Anroid app. \n" +
+                "(2) Open the accelerometer app on the Pebble. \n" +
+                "(3) In the Pebble app, select the part of the body where the Pebble is attched to. " +
+                "Then press any button except the back button to start. \n" +
+                "(4) When you are finished recording, press the Stop button on the Android app. \n" +
+                "(5) Press any button except the back button on the Pebble. \n" +
+                "(6) When the data shows up, press the Save button to save the data on your phone " +
+                "(or press the Start button again to collect more data. \n" +
+                "(7) To locate the data, open your phone's file manager app, open the Downloads folder, then open the PebbleDataLogging folder.");
     }
 
     @Override
@@ -257,7 +268,8 @@ public class MainActivity extends Activity {
     private AlertDialog displayDialog(String title, String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(message)
-                .setTitle(title);
+                .setTitle(title)
+                .setNeutralButton("Okay", null);
         AlertDialog dia = builder.create();
         dia.show();
         return dia;
