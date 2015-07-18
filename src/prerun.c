@@ -24,8 +24,8 @@ void prerun_init(int index){
   menu_index = index;
   window = window_create();
   text_layer = text_layer_create(layer_get_bounds(window_get_root_layer(window)));
-	static char text[128];
-	snprintf(text, 128, "Ready to go! - %s\n\nThis sensor will monitor your motion. Press the back button to choose a different part of the body or press any button on the right to begin logging.", item_array[index]);
+	static char text[256];
+	snprintf(text, 256, "Ready to go! - %s\n\nThis sensor will monitor your motion. Press the back button to choose a different part of the body or press any button on the right to begin logging.", item_array[index]);
 	text_layer_set_text(text_layer, text);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(text_layer));
 	
