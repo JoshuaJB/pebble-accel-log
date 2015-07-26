@@ -98,10 +98,11 @@ public class MainActivity extends Activity {
         saveButton.setText("Save");
 
         //Display instructions
-        displayDialog("Instructions", "(1) Press the Start button on the Anroid app. \n" +
-                "(2) Open the accelerometer app on the Pebble. \n" +
-                "(3) In the Pebble app, select the part of the body where the Pebble is attched to. " +
-                "Then press any button except the back button to start. \n" +
+        displayDialog("Instructions",
+                "(1) Open the accelerometer app on the Pebble. \n" +
+                "(2) In the Pebble app, select the part of the body where the Pebble is attched to. " +
+                "Then press any button except the back button to start logging. \n" +
+                "(3) Press the Start button on the Android app. \n" +
                 "(4) When you are finished recording, press the Stop button on the Android app. \n" +
                 "(5) Press any button except the back button on the Pebble. \n" +
                 "(6) When the data shows up, press the Save button to save the data on your phone " +
