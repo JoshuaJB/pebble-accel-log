@@ -230,13 +230,13 @@ public class MainActivity extends Activity {
                         File file = new File(dir, activities.get(i).name + " " + sensors.get(j).getTitle() + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
                         FileOutputStream outputStream = new FileOutputStream(file);
                         // Write the colunm headers
-                        outputStream.write("X(mG),Y(mG),Z(mG),Time(ms)\n".getBytes());
+                        outputStream.write("Time(ms),X(mG),Y(mG),Z(mG),Classification\n".getBytes());
                         // Write all the readings which correlate to our current activity
                         for (int k = 0; k < readings.size(); k++) {
                             if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
                                 if (firstReading == 0)
                                     firstReading = readings.get(k).timestamp;
-                                outputStream.write(String.format(Locale.US, "%+5d,%+5d,%+5d,%14d\n", readings.get(k).x, readings.get(k).y, readings.get(k).z, readings.get(k).timestamp).getBytes());
+                                outputStream.write(String.format(Locale.US, "%14d,%+5d,%+5d,%+5d,%s\n", readings.get(k).timestamp, readings.get(k).x, readings.get(k).y, readings.get(k).z, activities.get(i).name).getBytes());
                                 lastReading = readings.get(k).timestamp;
                             }
                         }
