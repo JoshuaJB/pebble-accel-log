@@ -40,18 +40,18 @@ public class MainActivity extends Activity {
     // 'features' needs to be kept in sync with the watchapp menu items and ordering
     private String[] features = {
         "DOMINANT_WRIST",
-        "NON_DOMINATE_WRIST",
+        "NON_DOMINANT_WRIST",
         "WAIST",
         "RIGHT_ANKLE",
         "LEFT_ANKLE",
-        "UPPER_DOMINATE_ARM",
-        "UPPER_NON_DOMINATE_ARM",
+        "UPPER_DOMINANT_ARM",
+        "UPPER_NON_DOMINANT_ARM",
         "RIGHT_THIGH",
         "LEFT_THIGH",
         "CHEST",
         "NECK"
     };
-    private String[] activityStrings = {"Pushups", "Situps", "Jumping Jacks", "Stretching", "Running", "Walking"};
+    private String[] activityStrings = {"Pushups", "Situps", "Jumping Jacks", "Staying Still", "Jogging", "Walking"};
 
     private PebbleDataLogReceiver dataloggingReceiver = null;
     private final ArrayList<Sensor> sensors = new ArrayList<Sensor>();
