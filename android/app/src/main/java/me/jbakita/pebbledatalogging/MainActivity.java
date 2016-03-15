@@ -23,7 +23,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.TimeZone;
 import java.util.UUID;
 import java.util.ArrayList;
@@ -144,7 +143,7 @@ public class MainActivity extends Activity {
                         int y = (int)decodeBytes(new byte[]{data[2], data[3]});
                         int z = (int)decodeBytes(new byte[]{data[4], data[5]});
                         Sensor sensor = sensors.get(sensors.indexOf(new Sensor(features[tag.intValue()], 0)));
-                        sensor.addReading(new Reading(x, y, z));
+                        sensor.addReading(new AccelerometerReading(x, y, z));
                     }
                 }
                 else {
@@ -204,7 +203,7 @@ public class MainActivity extends Activity {
     private void finishAndSaveReading() {
         for (int i = 0; i < activities.size(); i++) {
             for (int j = 0; j < sensors.size(); j++) {
-                ArrayList<Reading> readings = sensors.get(j).getReadings();
+                ArrayList<AccelerometerReading> readings = sensors.get(j).getReadings();
                 // TODO: Handle missing/unavailable external storage
                 try {
                     long lastReading = 0;
@@ -219,11 +218,11 @@ public class MainActivity extends Activity {
                     outputStream.write("X(mG),Y(mG),Z(mG),Time(ms)\n".getBytes());
                     // Write all the readings which correlate to our current activity
                     for (int k = 0; k < readings.size(); k++) {
-                        if (readings.get(k).timestamp >= activities.get(i).startTime && readings.get(k).timestamp < activities.get(i).endTime) {
+                        if (readings.get(k).getTimestamp() >= activities.get(i).startTime && readings.get(k).getTimestamp() < activities.get(i).endTime) {
                             if (firstReading == 0)
-                                firstReading = readings.get(k).timestamp;
-                            outputStream.write(String.format(Locale.US, "%+5d,%+5d,%+5d,%14d\n", readings.get(k).x, readings.get(k).y, readings.get(k).z, readings.get(k).timestamp).getBytes());
-                            lastReading = readings.get(k).timestamp;
+                                firstReading = readings.get(k).getTimestamp();
+                            outputStream.write(readings.get(k).toCSV().getBytes());
+                            lastReading = readings.get(k).getTimestamp();
                         }
                     }
                     // Do some validation on the dataset
@@ -253,8 +252,8 @@ public class MainActivity extends Activity {
     private class Sensor {
         private String name;
         private long lastTimestamp = 0;
-        private ArrayList<Reading> readings = new ArrayList<Reading>();
-        private ArrayList<Reading> readingBuffer = new ArrayList<Reading>();
+        private ArrayList<AccelerometerReading> readings = new ArrayList<AccelerometerReading>();
+        private ArrayList<AccelerometerReading> readingBuffer = new ArrayList<AccelerometerReading>();
         /* Initialize the sensor with a name. Setting the sample rate, and start time are required before adding readings.
          * @param name The sensor name, used only for display
          * @param timestamp ms since POSIX epoch at which this sensor started
@@ -268,7 +267,7 @@ public class MainActivity extends Activity {
          * @throws UnsupportedOperationException if the sample rate and beginning timestamp
          *                                       have yet to be set.
          */
-        public void addReading(Reading r) {
+        public void addReading(AccelerometerReading r) {
             // Check that everything is setup
             if (lastTimestamp == 0)
                 throw new UnsupportedOperationException("No starting timestamp set on sensor");
@@ -286,24 +285,24 @@ public class MainActivity extends Activity {
         public long getDuration() {
             if (readings.isEmpty())
                 return 0;
-            return readings.get(readings.size() - 1).timestamp - readings.get(0).timestamp;
+            return readings.get(readings.size() - 1).getTimestamp() - readings.get(0).getTimestamp();
         }
         public void addTimestamp(long t) {
             if (readingBuffer.isEmpty())
                 throw new UnsupportedOperationException("No readings in buffer. Cannot add timestamp.");
             long dur = t - lastTimestamp;
             double readingSize = dur / (double)(readingBuffer.size() + 1);
-            Reading reading0 = readingBuffer.remove(0);
+            AccelerometerReading reading0 = readingBuffer.remove(0);
             reading0.setTimestamp(lastTimestamp);
             readings.add(reading0);
-            for (Reading r : readingBuffer) {
+            for (AccelerometerReading r : readingBuffer) {
                 r.setTimestamp(lastTimestamp += readingSize);
                 readings.add(r);
             }
             lastTimestamp = t;
             readingBuffer.clear();
         }
-        public ArrayList<Reading> getReadings() {
+        public ArrayList<AccelerometerReading> getReadings() {
             return readings;
         }
         @Override
@@ -318,27 +317,6 @@ public class MainActivity extends Activity {
         @Override
         public String toString() {
             return readings.toString();
-        }
-    }
-    private class Reading {
-        public int x;
-        public int y;
-        public int z;
-        public long timestamp = 0;
-        public Reading(int x, int y, int z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-        /* Set reading timestamp
-         * @param posixMSTime time in ms since UNIX epoch
-         */
-        public void setTimestamp(long posixMSTime) {
-            timestamp = posixMSTime;
-        }
-        @Override
-        public String toString() {
-            return String.format("\nX: %+5d, Y: %+5d, Z: %+5d, Time: %s", x, y, z, DateFormat.getDateTimeInstance().format(new Date(timestamp)));
         }
     }
     private class MotionActivity {
