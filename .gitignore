@@ -1,0 +1,8 @@
+# Ignore VIM swap files
+*.swp
+# Ignore Gradle build files
+/android/build
+# Ignore Android Studio settings
+/android/.idea
+# Ignore Gradle settings
+/android/.gradle
