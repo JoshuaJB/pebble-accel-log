@@ -16,6 +16,9 @@ public class AccelerometerReading {
     // POSIX time in ms that this reading was taken at
     private long timestamp = 0;
 
+    // A descriptive header of the CSV fields output by toCSV().
+    public static String CSV_HEADER = "Time(ms)      ,X(mG),Y(mG),Z(mG)";
+
     /**
      * Initialize a reading. We require that a timestamp be added later.
      * @param x The X vector of acceleration
@@ -73,24 +76,17 @@ public class AccelerometerReading {
     }
 
     /**
-     * Retrieve a descriptive header of the CSV fields output by toCSV().
-     */
-    public String CSVHeader() {
-        return "Time(ms),X(mG),Y(mG),Z(mG)";
-    }
-
-    /**
-     * Retrive a machine-readable string of this reading in CSV format
+     * Retrieve a machine-readable string of this reading in CSV format
      */
     public String toCSV() {
-        return String.format(Locale.US, "%14d,%+5d,%+5d,%+5d\n", timestamp, x, y, z);
+        return String.format(Locale.US, "%14d,%+5d,%+5d,%+5d", timestamp, x, y, z);
     }
 
     /**
-     * Retrive a human-readable string of this reading
+     * Retrieve a human-readable string of this reading
      */
     @Override
     public String toString() {
-        return String.format("\nX: %+5d, Y: %+5d, Z: %+5d, Time: %s", x, y, z, DateFormat.getDateTimeInstance().format(new Date(timestamp)));
+        return String.format("\nX: %+5d, Y: %+5d, Z: %+5d, Time: %s, %+3dms", x, y, z, DateFormat.getDateTimeInstance().format(new Date(timestamp)), timestamp % 1000);
     }
 }

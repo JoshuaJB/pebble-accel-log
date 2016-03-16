@@ -21,9 +21,9 @@ import com.getpebble.android.kit.PebbleKit.PebbleDataLogReceiver;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.TimeZone;
 import java.util.UUID;
 import java.util.ArrayList;
 
@@ -53,8 +53,8 @@ public class MainActivity extends Activity {
     private String[] activityStrings = {"Pushups", "Situps", "Jumping Jacks", "Staying Still", "Jogging", "Walking"};
 
     private PebbleDataLogReceiver dataloggingReceiver = null;
-    private final ArrayList<Sensor> sensors = new ArrayList<Sensor>();
-    private final ArrayList<MotionActivity> activities = new ArrayList<MotionActivity>();
+    private final ArrayList<Sensor> sensors = new ArrayList<>();
+    private final ArrayList<MotionActivity> activities = new ArrayList<>();
     private ArrayAdapter<Sensor> adapter;
     private Button startStopButton;
 
@@ -91,12 +91,16 @@ public class MainActivity extends Activity {
         startStopButton.setOnClickListener(new startStopListener());
         startStopButton.setText("Start");
 
-        // Setup save button
+        // Setup save buttons
         Button saveButton = (Button)findViewById(R.id.savebutton);
         saveButton.setOnClickListener(new saveListener());
         saveButton.setText("Save");
 
-        //Display instructions
+        Button saveAllButton = (Button)findViewById(R.id.saveallbutton);
+        saveAllButton.setOnClickListener(new saveAllListener());
+        saveAllButton.setText("Save All");
+
+        // Display instructions
         displayDialog("Instructions",
                 "(1) Open the accelerometer app on the Pebble. \n" +
                 "(2) In the Pebble app, select the part of the body where the Pebble is attched to. " +
@@ -212,56 +216,82 @@ public class MainActivity extends Activity {
 
     }
 
-    private void finishAndSaveReading() {
-        Log.w("MainActivity", sensors.toString());
+    /**
+     * Save the contents of each sensor for each activity
+     * @param saveAll If true, ignore activities and dump unbounded sensor data
+     */
+    private void finishAndSaveReading(boolean saveAll) {
+        Log.d("MainActivity", sensors.toString());
         if (!isExternalStorageWritable()) {
-            displayDialog("Error", "/sdcard storage is not writeable. Unable to save readings.");
+            displayDialog("Error", "External storage is not writable. Unable to save readings.");
             return;
         }
-        for (int i = 0; i < activities.size(); i++) {
-            for (int j = 0; j < sensors.size(); j++) {
-                ArrayList<AccelerometerReading> readings = sensors.get(j).getReadings();
-                try {
-                    long lastReading = 0;
-                    long firstReading = 0;
-                    // Get/create our application's save folder
-                    File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/PebbleDataLogging/");
-                    dir.mkdir();
-                    // Create the file in the <activity name>-<sensor name>-<system time>.csv format
-                    File file = new File(dir, activities.get(i).name + " " + sensors.get(j).getTitle() + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
-                    FileOutputStream outputStream = new FileOutputStream(file);
-                    // Write the colunm headers
-                    outputStream.write((readings.get(k).CSVHeader() + ",Classification\n").getBytes());
-                    // Write all the readings which correlate to our current activity
-                    for (int k = 0; k < readings.size(); k++) {
-                        if (readings.get(k).getTimestamp() >= activities.get(i).startTime && readings.get(k).getTimestamp() < activities.get(i).endTime) {
-                            if (firstReading == 0)
-                                firstReading = readings.get(k).getTimestamp();
-                            outputStream.write((readings.get(k).getCSV() + activities.get(i).name + "\n").getBytes());
-                            lastReading = readings.get(k).getTimestamp();
-                        }
+        try {
+            if (saveAll) {
+                for (Sensor sensor : sensors) {
+                    saveSensorReadings("All Readings", sensor, sensor.getStartTime(), sensor.getStopTime());
+                }
+            }
+            else {
+                for (MotionActivity activity : activities) {
+                    for (Sensor sensor : sensors) {
+                        saveSensorReadings(activity.name, sensor, activity.getStartTime(), activity.getStopTime());
                     }
-                    // Do some validation on the dataset
-                    if (lastReading + 1000 < activities.get(i).endTime) {
-                        displayDialog("Warning!", "It seems like the dataset you just saved stopped sooner than expected. Make sure that you have all your sensor data.");
-                    }
-                    else if (firstReading - 1000 > activities.get(i).startTime) {
-                        displayDialog("Warning!", "It seems like the dataset you just saved started later than expected. Make sure that you have all your sensor data.");
-                    }
-                    outputStream.close();
-                    // Workaround for Android bug #38282
-                    MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
-                } catch (Exception e) {e.printStackTrace();}
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            displayDialog("Error", "Unable to completely save readings. See ADB log for details.");
+            return;
+        }
+        displayDialog("Success", "Data successfully saved.");
+    }
+
+    private void saveSensorReadings(String name, Sensor sensor, long startTime, long stopTime) throws IOException {
+        ArrayList<AccelerometerReading> readings = sensor.getReadings();
+        long lastReading = 0;
+        long firstReading = 0;
+        // Get/create our application's save folder
+        File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/PebbleDataLogging/");
+        // Make sure that the path is a directory if it exists, otherwise create it
+        if (dir.exists() && !dir.isDirectory()) {
+            displayDialog("Error", "Unable to save readings. Save path exists, but is not a directory");
+            return;
+        }
+        else if (!dir.exists() && !dir.mkdir()) {
+            displayDialog("Error", "Unable to create directory in which to save readings. Maybe out of space?");
+            return;
+        }
+        // Create the file in the <activity name>-<sensor name>-<system time>.csv format
+        File file = new File(dir, name + " " + sensor.getTitle() + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
+        FileOutputStream outputStream = new FileOutputStream(file);
+
+        // Write the column headers
+        outputStream.write((AccelerometerReading.CSV_HEADER + "\n").getBytes());
+        // Write all the readings which correlate to our current activity
+        for (int k = 0; k < readings.size(); k++) {
+            if (readings.get(k).getTimestamp() >= startTime && readings.get(k).getTimestamp() < stopTime) {
+                if (firstReading == 0)
+                    firstReading = readings.get(k).getTimestamp();
+                outputStream.write((readings.get(k).toCSV() + "\n").getBytes());
+                lastReading = readings.get(k).getTimestamp();
             }
         }
+        // Do some validation on the dataset
+        if (lastReading + 1000 < stopTime) {
+            displayDialog("Warning!", "It seems like the dataset you just saved stopped sooner than expected. Make sure that you have all your sensor data.");
+        }
+        if (firstReading - 1000 > startTime) {
+            displayDialog("Warning!", "It seems like the dataset you just saved started later than expected. Make sure that you have all your sensor data.");
+        }
+        outputStream.close();
+        // Workaround for Android bug #38282
+        MediaScannerConnection.scanFile(this, new String[]{file.getAbsolutePath()}, null, null);
     }
 
     public boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
+        return Environment.MEDIA_MOUNTED.equals(state);
     }
 
     private AlertDialog displayDialog(String title, String message) {
@@ -269,18 +299,18 @@ public class MainActivity extends Activity {
         builder.setMessage(message)
                 .setTitle(title)
                 .setNeutralButton("Okay", null);
-        AlertDialog dia = builder.create();
-        dia.show();
-        return dia;
+        AlertDialog dialog = builder.create();
+        dialog.show();
+        return dialog;
     }
     private class Sensor {
         private String name;
         private long lastTimestamp = 0;
-        private ArrayList<AccelerometerReading> readings = new ArrayList<AccelerometerReading>();
-        private ArrayList<AccelerometerReading> readingBuffer = new ArrayList<AccelerometerReading>();
+        private ArrayList<AccelerometerReading> readings = new ArrayList<>();
+        private ArrayList<AccelerometerReading> readingBuffer = new ArrayList<>();
         /* Initialize the sensor with a name. Setting the sample rate, and start time are required before adding readings.
          * @param name The sensor name, used only for display
-         * @param timestamp ms since POSIX epoch at which this sensor started
+         * @param timestamp ms since POSIX epoch at which this sensor started (GMT)
          */
         public Sensor(String name, long timestamp) {
             this.name = name;
@@ -309,7 +339,7 @@ public class MainActivity extends Activity {
         public long getDuration() {
             if (readings.isEmpty())
                 return 0;
-            return readings.get(readings.size() - 1).getTimestamp() - readings.get(0).getTimestamp();
+            return getStopTime() - getStartTime();
         }
         public void addTimestamp(long t) {
             if (readingBuffer.isEmpty())
@@ -329,6 +359,16 @@ public class MainActivity extends Activity {
         public ArrayList<AccelerometerReading> getReadings() {
             return readings;
         }
+        public long getStartTime() {
+            if (readings.isEmpty())
+                throw new UnsupportedOperationException("No readings. Cannot determine start time.");
+            return readings.get(0).getTimestamp();
+        }
+        public long getStopTime() {
+            if (readings.isEmpty())
+                throw new UnsupportedOperationException("No readings. Cannot determine stop time.");
+            return readings.get(readings.size() - 1).getTimestamp();
+        }
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof String)
@@ -344,14 +384,25 @@ public class MainActivity extends Activity {
         }
     }
     private class MotionActivity {
-        public long startTime = -1;
-        public long endTime = -1;
+        private long startTime;
+        private long stopTime = -1;
         public String name = "";
         public MotionActivity(long startTime) {
             this.startTime = startTime;
         }
         public boolean isFinished() {
-            return startTime != -1 && endTime != -1;
+            return stopTime != -1;
+        }
+        public void finish(long time) {
+            stopTime = time;
+        }
+        public long getStartTime() {
+            return startTime;
+        }
+        public long getStopTime() {
+            if (!isFinished())
+                throw new UnsupportedOperationException("Activity incomplete. End time unavailable.");
+            return stopTime;
         }
 
     }
@@ -361,12 +412,12 @@ public class MainActivity extends Activity {
             if (activities.isEmpty() || activities.get(activities.size() - 1).isFinished()) {
                 // Start recording
                 startStopButton.setText("Stop");
-                activities.add(new MotionActivity(System.currentTimeMillis() + TimeZone.getDefault().getRawOffset() + TimeZone.getDefault().getDSTSavings()));
+                activities.add(new MotionActivity(System.currentTimeMillis()));
             }
             else {
                 // End recording
                 startStopButton.setText("Start");
-                activities.get(activities.size() - 1).endTime = System.currentTimeMillis() + TimeZone.getDefault().getRawOffset() + TimeZone.getDefault().getDSTSavings();
+                activities.get(activities.size() - 1).finish(System.currentTimeMillis());
                 getMotionActivity(activities.get(activities.size() - 1));
             }
         }
@@ -374,7 +425,13 @@ public class MainActivity extends Activity {
     private class saveListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
-            finishAndSaveReading();
+            finishAndSaveReading(false);
+        }
+    }
+    private class saveAllListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            finishAndSaveReading(true);
         }
     }
 }

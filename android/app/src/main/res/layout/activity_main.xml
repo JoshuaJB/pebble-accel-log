@@ -21,6 +21,17 @@
         android:layout_height="wrap_content"
         android:text="Loading..."
         android:id="@+id/startstopbutton"
+        android:layout_above="@+id/saveallbutton"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Loading..."
+        android:id="@+id/saveallbutton"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
@@ -34,9 +45,9 @@
         android:id="@+id/savebutton"
         android:layout_alignParentBottom="true"
         android:layout_alignParentRight="true"
-        android:layout_below="@+id/listView"
         android:layout_toEndOf="@+id/space"
-        android:layout_toRightOf="@+id/space" />
+        android:layout_toRightOf="@+id/space"
+        android:layout_alignTop="@+id/saveallbutton" />
 
     <ProgressBar
         android:layout_width="wrap_content"
