@@ -39,18 +39,18 @@ public class MainActivity extends Activity {
     // 'features' needs to be kept in sync with the watchapp menu items and ordering
     private String[] features = {
         "DOMINANT_WRIST",
-        "NON_DOMINATE_WRIST",
+        "NON_DOMINANT_WRIST",
         "WAIST",
         "RIGHT_ANKLE",
         "LEFT_ANKLE",
-        "UPPER_DOMINATE_ARM",
-        "UPPER_NON_DOMINATE_ARM",
+        "UPPER_DOMINANT_ARM",
+        "UPPER_NON_DOMINANT_ARM",
         "RIGHT_THIGH",
         "LEFT_THIGH",
         "CHEST",
         "NECK"
     };
-    private String[] activityStrings = {"Pushups", "Situps", "Jumping Jacks", "Stretching", "Running", "Walking"};
+    private String[] activityStrings = {"Pushups", "Situps", "Jumping Jacks", "Staying Still", "Jogging", "Walking"};
 
     private PebbleDataLogReceiver dataloggingReceiver = null;
     private final ArrayList<Sensor> sensors = new ArrayList<Sensor>();
@@ -95,6 +95,18 @@ public class MainActivity extends Activity {
         Button saveButton = (Button)findViewById(R.id.savebutton);
         saveButton.setOnClickListener(new saveListener());
         saveButton.setText("Save");
+
+        //Display instructions
+        displayDialog("Instructions",
+                "(1) Open the accelerometer app on the Pebble. \n" +
+                "(2) In the Pebble app, select the part of the body where the Pebble is attched to. " +
+                "Then press any button except the back button to start logging. \n" +
+                "(3) Press the Start button on the Android app. \n" +
+                "(4) When you are finished recording, press the Stop button on the Android app. \n" +
+                "(5) Press any button except the back button on the Pebble. \n" +
+                "(6) When the data shows up, press the Save button to save the data on your phone " +
+                "(or press the Start button again to collect more data. \n" +
+                "(7) To locate the data, open your phone's file manager app, open the Downloads folder, then open the PebbleDataLogging folder.");
     }
 
     @Override
@@ -165,7 +177,7 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         // Always unregister callbacks
-        if(dataloggingReceiver != null) {
+        if (dataloggingReceiver != null) {
             unregisterReceiver(dataloggingReceiver);
         }
     }
@@ -201,10 +213,14 @@ public class MainActivity extends Activity {
     }
 
     private void finishAndSaveReading() {
+        Log.w("MainActivity", sensors.toString());
+        if (!isExternalStorageWritable()) {
+            displayDialog("Error", "/sdcard storage is not writeable. Unable to save readings.");
+            return;
+        }
         for (int i = 0; i < activities.size(); i++) {
             for (int j = 0; j < sensors.size(); j++) {
                 ArrayList<AccelerometerReading> readings = sensors.get(j).getReadings();
-                // TODO: Handle missing/unavailable external storage
                 try {
                     long lastReading = 0;
                     long firstReading = 0;
@@ -212,16 +228,16 @@ public class MainActivity extends Activity {
                     File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/PebbleDataLogging/");
                     dir.mkdir();
                     // Create the file in the <activity name>-<sensor name>-<system time>.csv format
-                    File file = new File(dir, activities.get(i).name + " " + features[j] + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
+                    File file = new File(dir, activities.get(i).name + " " + sensors.get(j).getTitle() + " " + DateFormat.getDateTimeInstance().format(new Date()) + ".csv");
                     FileOutputStream outputStream = new FileOutputStream(file);
                     // Write the colunm headers
-                    outputStream.write("X(mG),Y(mG),Z(mG),Time(ms)\n".getBytes());
+                    outputStream.write((readings.get(k).CSVHeader() + ",Classification\n").getBytes());
                     // Write all the readings which correlate to our current activity
                     for (int k = 0; k < readings.size(); k++) {
                         if (readings.get(k).getTimestamp() >= activities.get(i).startTime && readings.get(k).getTimestamp() < activities.get(i).endTime) {
                             if (firstReading == 0)
                                 firstReading = readings.get(k).getTimestamp();
-                            outputStream.write(readings.get(k).toCSV().getBytes());
+                            outputStream.write((readings.get(k).getCSV() + activities.get(i).name + "\n").getBytes());
                             lastReading = readings.get(k).getTimestamp();
                         }
                     }
@@ -238,13 +254,21 @@ public class MainActivity extends Activity {
                 } catch (Exception e) {e.printStackTrace();}
             }
         }
-        Log.w("MainActivity", sensors.toString());
+    }
+
+    public boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        if (Environment.MEDIA_MOUNTED.equals(state)) {
+            return true;
+        }
+        return false;
     }
 
     private AlertDialog displayDialog(String title, String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(message)
-                .setTitle(title);
+                .setTitle(title)
+                .setNeutralButton("Okay", null);
         AlertDialog dia = builder.create();
         dia.show();
         return dia;

@@ -73,10 +73,17 @@ public class AccelerometerReading {
     }
 
     /**
+     * Retrieve a descriptive header of the CSV fields output by toCSV().
+     */
+    public String CSVHeader() {
+        return "Time(ms),X(mG),Y(mG),Z(mG)";
+    }
+
+    /**
      * Retrive a machine-readable string of this reading in CSV format
      */
     public String toCSV() {
-        return String.format(Locale.US, "%+5d,%+5d,%+5d,%14d\n", x, y, z, timestamp);
+        return String.format(Locale.US, "%14d,%+5d,%+5d,%+5d\n", timestamp, x, y, z);
     }
 
     /**
